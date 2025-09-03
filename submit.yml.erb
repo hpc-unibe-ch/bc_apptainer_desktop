@@ -1,0 +1,21 @@
+---
+batch_connect:
+  template: "vnc_container"
+  set_host: "host=$(hostname -A | awk '{print $1}')"
+  websockify_cmd: "/usr/bin/websockify --verbose --log-file websockify.log"
+  container_path: "${HOME}/ondemand/dev/bc_apptainer_desktop/images/apptainer_rocky9_xfce_desktop.sif"
+  container_bindpath: "/scratch"
+  container_module: ""
+  container_command: "apptainer"
+  container_start_args:
+    - "--nv"
+  before_script: |
+    export XDG_RUNTIME_DIR=$(mktemp -d ${TMPDIR}/XXXXX)
+script:
+    native:
+        - "--cpus-per-task=<%= num_cores %>"
+        - "--mem=<%= memtask %>G"
+        - "--partition=<%= part %>"
+        <% if part == 'gpu' %>
+        - "--gres=gpu:<%= gpu_model %>:<%= num_gpus %>"
+        <% end %>
