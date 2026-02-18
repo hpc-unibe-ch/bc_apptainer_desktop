@@ -12,10 +12,20 @@ batch_connect:
   before_script: |
     export XDG_RUNTIME_DIR=$(mktemp -d ${TMPDIR}/XXXXX)
 script:
-    native:
-        - "--cpus-per-task=<%= num_cores %>"
-        - "--mem=<%= memtask %>G"
-        - "--partition=<%= part %>"
-        <% if part == 'gpu' %>
-        - "--gres=gpu:<%= gpu_model %>:<%= num_gpus %>"
-        <% end %>
+  native:
+    - "-N 1"
+    - "--cpus-per-task=<%= global_cores.blank? ? 1 : global_cores.to_i %>"
+    - "--mem-per-cpu=<%= global_memcore.blank? ? 4 : global_memcore.to_i %>G"
+    - "--qos=<%= auto_qos %>"
+    - "--account=<%= auto_accounts %>"
+<%- if global_wckey.present? -%>
+    - "--wckey=<%= global_wckey %>"
+<%- end -%>
+    - "--time=<%= global_bc_num_hours.blank? ? 1 : global_bc_num_hours.to_i %>:00:00"
+    - "--job-name=ood-rstudio"
+<%- if global_num_gpus.to_i > 0 -%>
+    - "--gres=gpu:<%= global_type_gpu.blank? ? rtx4090 : global_type_gpu %>:<%= global_num_gpus.blank? ? 1 : global_num_gpus %>"
+<%- end -%>
+<%- if global_reservation.present? -%>
+    - "--reservation=<%= global_reservation %>"
+<%- end -%>
